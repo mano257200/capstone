@@ -1,5 +1,5 @@
-apiVersion: v1
-kind: Service
+apiVersion: "v1" 
+kind: "Service"
 metadata:
   labels:
     app: "zuul-api-gateway"
@@ -10,22 +10,21 @@ spec:
     port: 9999
     targetPort: 9999
     nodePort: 32470
-  type: NodePort
+  type: "NodePort"
   selector:
     app: "zuul-api-gateway"
-
----
+---  
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "zuul-api-gateway"
-  labels:
+  labels: 
     app: zulu
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: "zuul-api-gateway"
+      matchLabels:
+        app: "zuul-api-gateway"
   template:
     metadata:
       labels:
@@ -34,7 +33,7 @@ spec:
       containers:
         - name: "zuul-api-gateway"
           image: "mahendravarman12/sample:api"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 9999
       affinity:
@@ -47,62 +46,3 @@ spec:
                 values:
                 - react-ui
             topologyKey: "kubernetes.io/hostname"
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: "react-ui"
-  labels:
-    app: react-ui
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: "react-ui"
-  template:
-    metadata:
-      labels:
-        app: react-ui
-    spec:
-      containers:
-        - name: "react-ui"
-          image: "mahendravarman12/sample:api"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-          # Add Liveness Probe
-          livenessProbe:
-            httpGet:
-              path: /health   
-              port: 8080      
-            initialDelaySeconds: 30 
-            periodSeconds: 10       
-
-          # Add Readiness Probe
-          readinessProbe:
-            httpGet:
-              path: /ready    
-              port: 8080      
-            initialDelaySeconds: 10 
-            periodSeconds: 5        
-
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: react-ui-hpa
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: react-ui
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 50  
