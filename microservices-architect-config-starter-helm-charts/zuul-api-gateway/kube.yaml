@@ -1,5 +1,5 @@
-apiVersion: "v1" 
-kind: "Service"
+apiVersion: v1
+kind: Service
 metadata:
   labels:
     app: "zuul-api-gateway"
@@ -10,21 +10,22 @@ spec:
     port: 9999
     targetPort: 9999
     nodePort: 32470
-  type: "NodePort"
+  type: NodePort
   selector:
     app: "zuul-api-gateway"
----  
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "zuul-api-gateway"
-  labels: 
+  labels:
     app: zulu
 spec:
   replicas: 1
   selector:
-      matchLabels:
-        app: "zuul-api-gateway"
+    matchLabels:
+      app: "zuul-api-gateway"
   template:
     metadata:
       labels:
@@ -33,7 +34,7 @@ spec:
       containers:
         - name: "zuul-api-gateway"
           image: "deekshithsn/zuul"
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9999
       affinity:
@@ -46,3 +47,62 @@ spec:
                 values:
                 - react-ui
             topologyKey: "kubernetes.io/hostname"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "react-ui"
+  labels:
+    app: react-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "react-ui"
+  template:
+    metadata:
+      labels:
+        app: react-ui
+    spec:
+      containers:
+        - name: "react-ui"
+          image: "deekshithsn/ui"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          # Add Liveness Probe
+          livenessProbe:
+            httpGet:
+              path: /health   # Change this path to your application's health endpoint
+              port: 8080      # Change this port to the port your application listens on
+            initialDelaySeconds: 30 # Wait this long before starting the probe
+            periodSeconds: 10       # Check every 10 seconds
+
+          # Add Readiness Probe
+          readinessProbe:
+            httpGet:
+              path: /ready    # Change this path to your application's readiness endpoint
+              port: 8080      # Change this port to the port your application listens on
+            initialDelaySeconds: 10 # Wait this long before starting the probe
+            periodSeconds: 5        # Check every 5 seconds
+
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: react-ui-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: react-ui
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50  # Set your target CPU utilization percentage here
