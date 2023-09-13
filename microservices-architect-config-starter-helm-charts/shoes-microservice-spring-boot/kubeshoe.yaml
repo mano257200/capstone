@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: "shoe-ui"
-          image: "mahendravarman12/sample:shoe"
+          image: "mahendravarman12/e-commerce:shoe"
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 1002
@@ -47,7 +47,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 15
 ---
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: shoe-ui-autoscaler
