@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: shoe-ui
-          image: deekshithsn/wishlist
+          image: mahendravarman12/e-commerce:wish
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
