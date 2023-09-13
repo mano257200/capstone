@@ -37,12 +37,12 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 1002
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 1002
             initialDelaySeconds: 10
             periodSeconds: 15
